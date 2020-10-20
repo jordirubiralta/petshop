@@ -1,0 +1,4 @@
+*.xcuserdatad/
+*.xcuserstate
+vendor/
+Pods/

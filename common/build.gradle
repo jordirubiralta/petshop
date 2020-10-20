@@ -1,0 +1,94 @@
+apply plugin: 'kotlin-multiplatform'
+apply plugin: 'kotlinx-serialization'
+apply plugin: 'org.jetbrains.kotlin.native.cocoapods'
+apply plugin: 'co.touchlab.kotlinxcodesync'
+
+kotlin {
+
+    jvm {
+
+    }
+
+    sourceSets {
+        commonRelease {}
+
+        commonDebug {}
+
+        commonMain {
+            if (rootProject.hasProperty("debug")) {
+                dependsOn commonDebug
+            } else {
+                dependsOn commonRelease
+            }
+
+            dependencies {
+                api Libs.kotlinxCoroutinesCoreCommon
+                api Libs.ktorClientCore
+                api Libs.ktorClientJson
+                api Libs.ktorClientLogging
+                api Libs.ktorClientSerialization
+            }
+        }
+
+        commonTest {
+            dependencies {
+                api Libs.kotlinTestCommon
+            }
+        }
+
+        iOSMain {
+            dependencies {
+                api Libs.ktorClientIos
+            }
+        }
+
+        jvmMain {
+            dependencies {
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                api Libs.junit
+                api Libs.kotlinTestJunit
+                api Libs.kotlinTest
+            }
+        }
+    }
+
+    targets {
+        def buildForDevice = project.findProperty("kotlin.native.cocoapods.target") == "ios_arm"
+        if (buildForDevice) {
+            iosArm64("iOS64")
+            iosArm32("iOS32")
+
+            def iOSMain = sourceSets.iOSMain
+            sourceSets["iOS64Main"].dependsOn(iOSMain)
+            sourceSets["iOS32Main"].dependsOn(iOSMain)
+        } else {
+            iosX64("iOS")
+        }
+    }
+
+    cocoapods {
+        summary = "Kotlin Multiplatform Template common module"
+        homepage = "https://github.com/wiyarmir/kotlin-multiplatform-template"
+    }
+}
+
+configurations {
+    compileClasspath
+}
+
+xcode {
+    projectPath = "../ios/KotlinMultiplatformTemplate.xcodeproj"
+    target = "KotlinMultiplatformTemplate"
+}
+
+detekt {
+    input = files(
+            "src/commonMain/kotlin",
+            "src/iOSMain/kotlin",
+            "src/jvmMain/kotlin",
+    )
+}
